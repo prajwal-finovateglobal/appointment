@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4.1-mini-2025-04-14"
     embedding_model: str = "text-embedding-ada-002"
     
-    # Calendly Configuration
+    # Google Calendar Configuration
+    google_calendar_enabled: bool = True
     pat: str = os.getenv("PAT", "")
     
     # FAISS Configuration

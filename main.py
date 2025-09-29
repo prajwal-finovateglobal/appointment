@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Appointment Extraction API - FAISS",
-    description="Extract appointments from transcripts using FAISS RAG and Calendly integration",
+    description="Extract appointments from transcripts using FAISS RAG and Google Calendar integration",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -33,7 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="/api/v1", tags=["appointments"])
-app.include_router(availability_router, tags=["calendly"])
+app.include_router(availability_router, tags=["google-calendar"])
 app.include_router(booking_router, tags=["booking"])
 
 if __name__ == "__main__":
