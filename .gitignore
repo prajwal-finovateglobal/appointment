@@ -50,3 +50,13 @@ Thumbs.db
 
 # FAISS data
 data/faiss_store/
+
+# Google Calendar credentials (confidential)
+credentials.json
+token.json
+service-account-credentials.json
+token.json.backup
+
+# Test files
+avilability_check.py
+quickstart.py
