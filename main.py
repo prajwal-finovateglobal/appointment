@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import router
+from api import availability_router, booking_router
 from utils.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -18,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Appointment Extraction API - FAISS",
-    description="Extract appointments from transcripts using FAISS RAG",
+    description="Extract appointments from transcripts using FAISS RAG and Calendly integration",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -32,6 +33,8 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="/api/v1", tags=["appointments"])
+app.include_router(availability_router, tags=["calendly"])
+app.include_router(booking_router, tags=["booking"])
 
 if __name__ == "__main__":
     import uvicorn
