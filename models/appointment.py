@@ -15,6 +15,7 @@ class AppointmentDetail(BaseModel):
     status: AppointmentStatus = Field(default=AppointmentStatus.OFFERED)
     duration: Optional[str] = Field(None, description="Expected duration")
     appointment_type: Optional[str] = Field(None, description="Type of appointment")
+    event_name: Optional[str] = Field(None, description="Short event name (less than 5 words) for the meeting")
 
 class ExtractedAppointments(BaseModel):
     appointments: List[AppointmentDetail] = Field(default_factory=list)

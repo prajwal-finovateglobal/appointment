@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4.1-mini-2025-04-14"
     embedding_model: str = "text-embedding-ada-002"
     
+    # Calendly Configuration
+    pat: str = os.getenv("PAT", "")
+    
     # FAISS Configuration
     faiss_index_path: str = "./data/faiss_store"
     

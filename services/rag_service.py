@@ -45,13 +45,19 @@ class RAGService:
             return False
     
     def _format_full_transcript(self, segments) -> str:
-        """Format the full transcript for LLM processing"""
+        """Format the full transcript for LLM processing - handles any normalized format"""
         formatted_lines = []
         for segment in segments:
+            # Extract fields with fallbacks
             speaker = segment.get("speaker", "unknown").capitalize()
             text = segment.get("text", "")
             timestamp = segment.get("timestamp", "")
-            formatted_lines.append(f"[{timestamp}] {speaker}: {text}")
+            
+            # Format the line
+            if timestamp:
+                formatted_lines.append(f"[{timestamp}] {speaker}: {text}")
+            else:
+                formatted_lines.append(f"{speaker}: {text}")
         
         return "\n".join(formatted_lines)
     

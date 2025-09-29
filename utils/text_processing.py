@@ -1,6 +1,6 @@
 import json
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 
@@ -16,18 +16,101 @@ class TranscriptProcessor:
         ]
     
     def parse_transcript(self, transcript_text: str) -> List[Dict[str, Any]]:
-        """Parse transcript text or JSON into structured format"""
+        """Parse transcript text or JSON into structured format - handles any schema"""
         try:
             # Try JSON parsing first
             transcript_data = json.loads(transcript_text)
-            if isinstance(transcript_data, dict) and "transcript" in transcript_data:
-                return transcript_data["transcript"]
-            elif isinstance(transcript_data, list):
-                return transcript_data
-            else:
-                return self._parse_plain_text(transcript_text)
+            return self._normalize_transcript_data(transcript_data)
         except json.JSONDecodeError:
             return self._parse_plain_text(transcript_text)
+    
+    def _normalize_transcript_data(self, data: Union[Dict, List]) -> List[Dict[str, Any]]:
+        """Normalize any transcript data structure to a common format"""
+        if isinstance(data, list):
+            # Handle list of objects (most common case)
+            normalized = []
+            for item in data:
+                if isinstance(item, dict):
+                    normalized.append(self._normalize_single_item(item))
+                else:
+                    # Handle primitive values in list
+                    normalized.append({
+                        "text": str(item),
+                        "speaker": "unknown",
+                        "timestamp": "",
+                        "confidence": 0.9
+                    })
+            return normalized
+        elif isinstance(data, dict):
+            # Handle single object or nested structure
+            if "transcript" in data:
+                return self._normalize_transcript_data(data["transcript"])
+            elif "messages" in data:
+                return self._normalize_transcript_data(data["messages"])
+            elif "conversation" in data:
+                return self._normalize_transcript_data(data["conversation"])
+            else:
+                # Single message object
+                return [self._normalize_single_item(data)]
+        else:
+            # Handle primitive values
+            return [{
+                "text": str(data),
+                "speaker": "unknown", 
+                "timestamp": "",
+                "confidence": 0.9
+            }]
+    
+    def _normalize_single_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize a single transcript item to standard format"""
+        normalized = {
+            "text": "",
+            "speaker": "unknown",
+            "timestamp": "",
+            "confidence": 0.9
+        }
+        
+        # Map various field names to standard fields
+        text_fields = ["text", "content", "message", "body", "transcript", "utterance"]
+        speaker_fields = ["speaker", "sender", "user", "agent", "role", "from"]
+        timestamp_fields = ["timestamp", "time", "created_at", "date", "datetime"]
+        confidence_fields = ["confidence", "score", "probability"]
+        
+        # Extract text content
+        for field in text_fields:
+            if field in item and item[field]:
+                normalized["text"] = str(item[field])
+                break
+        
+        # Extract speaker
+        for field in speaker_fields:
+            if field in item and item[field]:
+                normalized["speaker"] = str(item[field]).lower()
+                break
+        
+        # Extract timestamp
+        for field in timestamp_fields:
+            if field in item and item[field]:
+                normalized["timestamp"] = str(item[field])
+                break
+        
+        # Extract confidence
+        for field in confidence_fields:
+            if field in item and item[field]:
+                try:
+                    normalized["confidence"] = float(item[field])
+                except (ValueError, TypeError):
+                    normalized["confidence"] = 0.9
+                break
+        
+        # If no text found, try to use any string value
+        if not normalized["text"]:
+            for key, value in item.items():
+                if isinstance(value, str) and value.strip():
+                    normalized["text"] = value
+                    break
+        
+        return normalized
     
     def _parse_plain_text(self, text: str) -> List[Dict[str, Any]]:
         """Parse plain text transcript"""

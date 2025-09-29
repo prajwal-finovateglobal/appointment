@@ -53,6 +53,9 @@ Extract ALL appointment dates and times mentioned (both offered and confirmed).
 Convert dates to YYYY-MM-DD format and times to HH:MM format (24-hour).
 Mark status as 'offered' for suggested times, 'confirmed' for accepted ones.
 
+For each appointment, also extract a short event name (less than 5 words) that describes the purpose or type of the meeting.
+Examples of event names: "Consultation", "Follow-up Call", "Product Demo", "Support Meeting", "Sales Call", "Technical Review", "Project Discussion", "Team Meeting", "Client Check-in", "Training Session".
+
 {format_instructions}
 
 Be precise and extract only factual information."""
