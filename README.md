@@ -1,8 +1,8 @@
-# 🚀 Appointment Extraction & Booking System
+# Appointment Extraction & Booking System
 
 A complete AI-powered appointment system that extracts meeting details from customer service transcripts and automatically books Google Calendar events.
 
-## ✨ Features
+## Features
 
 - **AI-Powered Extraction**: Uses OpenAI LLM to extract appointment details from any transcript format
 - **Google Calendar Integration**: Check availability and book meetings automatically
@@ -11,7 +11,7 @@ A complete AI-powered appointment system that extracts meeting details from cust
 - **Smart Meeting Links**: Real Google Meet links, no placeholders
 - **Flexible Schema**: Handles any transcript format (timestamp, sender, text)
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
 Customer Transcript → LLM Service → Availability Check → Booking Service → Google Calendar
@@ -22,7 +22,7 @@ Customer Transcript → LLM Service → Availability Check → Booking Service �
 2. **Availability Service**: Checks calendar slots, lists free times, shows existing events
 3. **Booking Service**: Creates Google Calendar events with email notifications
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.11+
@@ -87,9 +87,9 @@ curl -X POST "http://localhost:8000/api/v1/extract" \
   }'
 ```
 
-## 📚 API Documentation
+## API Documentation
 
-### 🧠 LLM Service - Extract Appointments
+### LLM Service - Extract Appointments
 
 **Endpoint**: `POST /api/v1/extract`
 
@@ -122,7 +122,7 @@ curl -X POST "http://localhost:8000/api/v1/extract" \
 }
 ```
 
-### 📅 Availability Service
+### Availability Service
 
 #### Check Multiple Slots
 **Endpoint**: `POST /availability/batch`
@@ -214,7 +214,7 @@ curl -X POST "http://localhost:8000/api/v1/extract" \
 4. **Download `credentials.json`**
 5. **Run authentication flow** (one-time setup)
 
-## 🏃‍♂️ Complete Workflow Example
+## Complete Workflow Example
 
 ```bash
 # 1. Extract appointment from transcript
@@ -249,7 +249,7 @@ curl -X POST "http://localhost:8000/booking/create" \
   }'
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
