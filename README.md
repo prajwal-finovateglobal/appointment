@@ -164,7 +164,7 @@ curl -X POST "http://localhost:8000/api/v1/extract" \
 }
 ```
 
-### 📝 Booking Service
+### Booking Service
 
 **Endpoint**: `POST /booking/create`
 
