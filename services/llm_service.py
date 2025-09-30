@@ -49,16 +49,34 @@ class LLMService:
         
         return f"""You are an expert at extracting appointment information from customer service transcripts.
 
-Extract ALL appointment dates and times mentioned (both offered and confirmed).
-Convert dates to YYYY-MM-DD format and times to HH:MM format (24-hour).
-Mark status as 'offered' for suggested times, 'confirmed' for accepted ones.
+CRITICAL: Extract ALL the following information:
 
-For each appointment, also extract a short event name (less than 5 words) that describes the purpose or type of the meeting.
-Examples of event names: "Consultation", "Follow-up Call", "Product Demo", "Support Meeting", "Sales Call", "Technical Review", "Project Discussion", "Team Meeting", "Client Check-in", "Training Session".
+1. CUSTOMER INFORMATION:
+   - customer_name: Full name of the person booking the appointment
+   - contact_info: Email address of the customer (mandatory for booking a meeting); phone number if available
+
+2. APPOINTMENT DETAILS:
+   - Extract ALL appointment dates and times mentioned (both offered and confirmed)
+   - Convert dates to YYYY-MM-DD format and times to HH:MM format (24-hour)
+   - Mark status as 'offered' for suggested times, 'confirmed' for accepted ones
+   - duration: Extract duration if mentioned, otherwise leave null (will default to 30 minutes)
+   - appointment_type: Type of appointment (consultation, demo, support, etc.)
+   - event_name: Short event name (less than 5 words) for the meeting
+
+3. EXAMPLES OF EVENT NAMES:
+   "Consultation", "Follow-up Call", "Product Demo", "Support Meeting", "Sales Call", 
+   "Technical Review", "Project Discussion", "Team Meeting", "Client Check-in", "Training Session"
+
+4. EXAMPLES OF DURATION EXTRACTION:
+   - "30 minutes" → "30"
+   - "1 hour" → "60" 
+   - "2 hours" → "120"
+   - "45 min" → "45"
+   - If not mentioned, leave null
 
 {format_instructions}
 
-Be precise and extract only factual information."""
+Be precise and extract only factual information. Always include customer_name and contact_info when available."""
     
     def _calculate_confidence(self, context: str, extracted_data: ExtractedAppointments) -> float:
         confidence_factors = []

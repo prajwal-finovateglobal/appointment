@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     # Google Calendar Configuration
     google_calendar_enabled: bool = True
     pat: str = os.getenv("PAT", "")
+    organizer_email: str = os.getenv("EMAIL", "")
+    organizer_name: str = os.getenv("ORGANIZER_NAME", "Meeting Organizer")
+    default_calendar_id: str = os.getenv("EMAIL", "primary")
+    default_timezone: str = os.getenv("TIMEZONE", "Asia/Kolkata")
     
     # FAISS Configuration
     faiss_index_path: str = "./data/faiss_store"
@@ -31,5 +35,6 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra environment variables
 
 settings = Settings()

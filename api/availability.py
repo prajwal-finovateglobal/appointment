@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict
 
-from models import BatchAvailabilityRequest, AvailabilityResponse, DateRangeAvailabilityRequest, FreeSlotsResponse
+from models import BatchAvailabilityRequest, AvailabilityResponse, DateRangeAvailabilityRequest, FreeSlotsResponse, EventListRequest, EventListResponse
 from services import AvailabilityService
 
 router = APIRouter(prefix="/availability")
@@ -55,6 +55,34 @@ def get_free_slots(request: DateRangeAvailabilityRequest) -> FreeSlotsResponse:
             duration_minutes=request.duration_minutes,
             working_hours=request.working_hours,
             free_slots=free_slots
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/events", response_model=EventListResponse)
+def get_events_in_range(request: EventListRequest) -> EventListResponse:
+    """Get all events/meetings within a date range using Google Calendar"""
+    try:
+        availability_service = AvailabilityService()
+        
+        # Get events for the date range
+        events = availability_service.get_events_in_date_range(
+            start_date=request.start_date,
+            end_date=request.end_date,
+            timezone=request.timezone,
+            calendar_id=request.calendar_id
+        )
+        
+        return EventListResponse(
+            timezone=request.timezone,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            total_events=len(events),
+            events=events
         )
         
     except HTTPException:

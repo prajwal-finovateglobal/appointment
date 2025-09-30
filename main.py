@@ -12,14 +12,14 @@ logging.basicConfig(level=logging.INFO)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logging.info("Starting Appointment Extraction API with FAISS...")
-    logging.info(f"FAISS Index Path: {settings.faiss_index_path}")
+    logging.info("Starting Appointment Extraction API and Google Calendar...")
+    logging.info(f"RAG Index Path: {settings.faiss_index_path}")
     yield
     # Shutdown (if needed)
 
 app = FastAPI(
-    title="Appointment Extraction API - FAISS",
-    description="Extract appointments from transcripts using FAISS RAG and Google Calendar integration",
+    title="Appointment Extraction API and Google Calendar",
+    description="Extract appointments from transcripts using RAG and Google Calendar integration",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -32,9 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api/v1", tags=["appointments"])
-app.include_router(availability_router, tags=["google-calendar"])
-app.include_router(booking_router, tags=["booking"])
+app.include_router(router, prefix="/api/v1", tags=["appointments-transcripts-extraction"])
+app.include_router(availability_router, tags=["google-calendar-avilability"])
+app.include_router(booking_router, tags=["google-calendar-booking"])
 
 if __name__ == "__main__":
     import uvicorn

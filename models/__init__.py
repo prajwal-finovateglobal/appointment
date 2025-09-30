@@ -1,4 +1,4 @@
-from .availability import Slot, BatchAvailabilityRequest, AvailabilityResponse, DateRangeAvailabilityRequest, FreeSlotsResponse
+from .availability import Slot, BatchAvailabilityRequest, AvailabilityResponse, DateRangeAvailabilityRequest, FreeSlotsResponse, EventListRequest, EventDetail, EventListResponse
 from .booking import (
     GoogleCalendarBookingRequest, 
     GoogleCalendarBookingResponse,
@@ -14,6 +14,9 @@ __all__ = [
     "AvailabilityResponse", 
     "DateRangeAvailabilityRequest", 
     "FreeSlotsResponse",
+    "EventListRequest",
+    "EventDetail", 
+    "EventListResponse",
     "GoogleCalendarBookingRequest", 
     "GoogleCalendarBookingResponse",
     "BookingUpdateRequest",

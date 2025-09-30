@@ -8,6 +8,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from utils.config import settings
 
 class GoogleCalendarService:
     """Service for Google Calendar operations"""
@@ -131,20 +132,21 @@ class AvailabilityService:
             date = slot["date"]
             times = slot["times"]
             
+            # Initialize day_result if it doesn't exist
+            if date not in results:
+                results[date] = {}
+            
             # Check availability for each time slot
-            day_result: Dict[str, Dict] = {}
             for time in times:
                 availability = self.google_calendar_service.check_availability(
                     date, time, duration_minutes, timezone
                 )
                 
-                day_result[time] = {
+                results[date][time] = {
                     "available": availability["available"],
                     "conflicts": availability["conflicts"],
                     "conflicting_events": availability.get("conflicting_events", [])
                 }
-            
-            results[date] = day_result
         
         return results
     
@@ -231,4 +233,96 @@ class AvailabilityService:
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to get free slots: {str(e)}"
+            )
+    
+    def get_events_in_date_range(self, start_date: str, end_date: str, timezone: str, calendar_id: str = None) -> List[Dict]:
+        """
+        Get all events within a date range
+        
+        Args:
+            start_date: Start date in YYYY-MM-DD format
+            end_date: End date in YYYY-MM-DD format
+            timezone: Timezone for the events
+            calendar_id: Google Calendar ID
+            
+        Returns:
+            List of event details
+        """
+        try:
+            # Use default calendar ID if not provided
+            if calendar_id is None:
+                calendar_id = settings.default_calendar_id or "primary"
+            
+            # Parse dates and create datetime objects
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+            tz = ZoneInfo(timezone)
+            
+            # Create start and end datetime objects
+            start_datetime = datetime.combine(start_dt, datetime.min.time()).replace(tzinfo=tz)
+            end_datetime = datetime.combine(end_dt, datetime.max.time()).replace(tzinfo=tz)
+            
+            # Convert to UTC for Google Calendar API
+            start_utc = start_datetime.astimezone(ZoneInfo('UTC'))
+            end_utc = end_datetime.astimezone(ZoneInfo('UTC'))
+            
+            # Format for Google Calendar API
+            start_rfc3339 = start_utc.isoformat().replace('+00:00', 'Z')
+            end_rfc3339 = end_utc.isoformat().replace('+00:00', 'Z')
+            
+            # Query for events in the time range
+            events_result = self.google_calendar_service.service.events().list(
+                calendarId=calendar_id,
+                timeMin=start_rfc3339,
+                timeMax=end_rfc3339,
+                singleEvents=True,
+                orderBy='startTime'
+            ).execute()
+            
+            events = events_result.get('items', [])
+            
+            # Process events and extract relevant information
+            processed_events = []
+            for event in events:
+                # Extract meeting link if available
+                meeting_link = None
+                location = event.get('location', '')
+                
+                # Check for Google Meet links in conferenceData (real meeting links)
+                if event.get('conferenceData'):
+                    entry_points = event['conferenceData'].get('entryPoints', [])
+                    for entry_point in entry_points:
+                        if entry_point.get('entryPointType') == 'video' and 'meet.google.com' in entry_point.get('uri', ''):
+                            meeting_link = entry_point.get('uri')
+                            break
+                
+                # Check for Google Meet links in location field (but validate they're real)
+                elif location and 'meet.google.com' in location:
+                    # Only use location as meeting link if it looks like a real Google Meet URL
+                    if '/abc-defg-hij' not in location and len(location.split('/')[-1]) > 10:
+                        meeting_link = location
+                
+                # Clean up location field - don't show placeholder URLs
+                if location and ('abc-defg-hij' in location or 'example' in location.lower()):
+                    location = None
+                
+                processed_event = {
+                    'event_id': event['id'],
+                    'title': event.get('summary', 'No Title'),
+                    'start': event['start'].get('dateTime', event['start'].get('date')),
+                    'end': event['end'].get('dateTime', event['end'].get('date')),
+                    'location': location,
+                    'description': event.get('description'),
+                    'attendees': event.get('attendees', []),
+                    'meeting_link': meeting_link,
+                    'status': event.get('status', 'confirmed')
+                }
+                processed_events.append(processed_event)
+            
+            return processed_events
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get events: {str(e)}"
             )

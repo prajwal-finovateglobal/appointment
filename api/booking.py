@@ -9,7 +9,7 @@ from models.booking import (
 )
 from services.google_calendar_booking_service import GoogleCalendarBookingService
 
-router = APIRouter(prefix="/booking", tags=["google-calendar-booking"])
+router = APIRouter(prefix="/booking")
 
 
 @router.post("/create", response_model=GoogleCalendarBookingResponse)

@@ -16,6 +16,7 @@ from models.booking import (
     BookingCancellationRequest,
     MeetingLocation
 )
+from utils.config import settings
 
 
 class GoogleCalendarBookingService:
@@ -70,6 +71,11 @@ class GoogleCalendarBookingService:
             start_rfc3339 = start_utc.isoformat().replace('+00:00', 'Z')
             end_rfc3339 = end_utc.isoformat().replace('+00:00', 'Z')
             
+            # Get organizer details from environment
+            organizer_email = settings.organizer_email or request.attendee_email  # Fallback to attendee email if not set
+            organizer_name = settings.organizer_name or "Meeting Organizer"
+            calendar_id = settings.default_calendar_id or request.calendar_id
+            
             # Prepare attendees list with proper notification settings
             attendees = []
             
@@ -111,8 +117,8 @@ class GoogleCalendarBookingService:
                 },
                 'attendees': attendees,
                 'organizer': {
-                    'email': request.organizer_email,
-                    'displayName': request.organizer_name
+                    'email': organizer_email,
+                    'displayName': organizer_name
                 },
                 'visibility': request.visibility,
                 'guestsCanModify': False,
@@ -156,7 +162,7 @@ class GoogleCalendarBookingService:
             
             # Create the event
             created_event = self.service.events().insert(
-                calendarId=request.calendar_id,
+                calendarId=calendar_id,
                 body=event_body,
                 conferenceDataVersion=1 if request.location and request.location.type == 'virtual' else 0,
                 sendUpdates='all' if request.send_notifications else 'none'
@@ -172,7 +178,7 @@ class GoogleCalendarBookingService:
                 try:
                     # Send explicit invitations to ensure attendees get notified
                     self.service.events().patch(
-                        calendarId=request.calendar_id,
+                        calendarId=calendar_id,
                         eventId=created_event['id'],
                         body={'attendees': attendees},
                         sendUpdates='all'

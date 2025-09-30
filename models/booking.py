@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
+from utils.config import settings
 
 
 class MeetingLocation(BaseModel):
@@ -26,11 +27,9 @@ class GoogleCalendarBookingRequest(BaseModel):
     date: str = Field(..., description="Event date in YYYY-MM-DD format")
     time: str = Field(..., description="Event time in HH:MM format (24-hour)")
     duration_minutes: int = Field(default=60, description="Event duration in minutes")
-    timezone: str = Field(default="Asia/Kolkata", description="Event timezone")
+    timezone: str = Field(default_factory=lambda: settings.default_timezone, description="Event timezone")
     
-    # Attendee details
-    organizer_name: str = Field(..., description="Name of the person organizing the meeting")
-    organizer_email: EmailStr = Field(..., description="Email of the person organizing the meeting")
+    # Attendee details (organizer will be set from environment)
     attendee_name: str = Field(..., description="Name of the primary attendee")
     attendee_email: EmailStr = Field(..., description="Email of the primary attendee")
     additional_attendees: Optional[List[EmailStr]] = Field(default=None, description="Additional attendee emails")
@@ -42,7 +41,7 @@ class GoogleCalendarBookingRequest(BaseModel):
     meeting_notes: Optional[str] = Field(default=None, description="Additional meeting notes")
     send_notifications: bool = Field(default=True, description="Whether to send email notifications")
     
-    # Calendar settings
+    # Calendar settings (will be set from environment)
     calendar_id: str = Field(default="primary", description="Google Calendar ID to create event in")
     visibility: str = Field(default="default", description="Event visibility: 'default', 'public', 'private'")
 
