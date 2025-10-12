@@ -3,7 +3,6 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.endpoints import router
 from api import availability_router, booking_router
 from utils.config import settings
 
@@ -31,8 +30,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(router, prefix="/api/v1", tags=["appointments-transcripts-extraction"])
 app.include_router(availability_router, tags=["google-calendar-avilability"])
 app.include_router(booking_router, tags=["google-calendar-booking"])
 

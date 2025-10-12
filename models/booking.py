@@ -29,10 +29,6 @@ class GoogleCalendarBookingRequest(BaseModel):
     duration_minutes: int = Field(default=60, description="Event duration in minutes")
     timezone: str = Field(default_factory=lambda: settings.default_timezone, description="Event timezone")
     
-    # Attendee details (organizer will be set from environment)
-    attendee_name: str = Field(..., description="Name of the primary attendee")
-    attendee_email: EmailStr = Field(..., description="Email of the primary attendee")
-    additional_attendees: Optional[List[EmailStr]] = Field(default=None, description="Additional attendee emails")
     # Alternative: Use structured attendee list
     all_attendees: Optional[List[AttendeeInfo]] = Field(default=None, description="Complete list of attendees with names and emails")
     

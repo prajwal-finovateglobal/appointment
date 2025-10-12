@@ -2,12 +2,6 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from fastapi import HTTPException
-import json
-import os
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 
 from models.booking import (
     GoogleCalendarBookingRequest, 
@@ -17,39 +11,16 @@ from models.booking import (
     MeetingLocation
 )
 from utils.config import settings
+from .auth import get_authenticated_service
 
 
 class GoogleCalendarBookingService:
     """Service for Google Calendar booking operations"""
     
     def __init__(self):
-        self.service = self._get_calendar_service()
-    
-    def _get_calendar_service(self):
-        """Get authenticated Google Calendar service with write permissions"""
-        SCOPES = [
-            'https://www.googleapis.com/auth/calendar',
-            'https://www.googleapis.com/auth/calendar.events'
-        ]
-        creds = None
-        
-        # The file token.json stores the user's access and refresh tokens.
-        if os.path.exists('token.json'):
-            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-        
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open('token.json', 'w') as token:
-                token.write(creds.to_json())
-        
-        return build('calendar', 'v3', credentials=creds)
+        self.service = get_authenticated_service()
+        if not self.service:
+            raise Exception("Failed to initialize Google Calendar service")
     
     def create_booking(self, request: GoogleCalendarBookingRequest) -> GoogleCalendarBookingResponse:
         """Create a new Google Calendar event/booking"""
@@ -72,14 +43,14 @@ class GoogleCalendarBookingService:
             end_rfc3339 = end_utc.isoformat().replace('+00:00', 'Z')
             
             # Get organizer details from environment
-            organizer_email = settings.organizer_email or request.attendee_email  # Fallback to attendee email if not set
+            organizer_email = settings.organizer_email or "organizer@example.com"  # Fallback to default
             organizer_name = settings.organizer_name or "Meeting Organizer"
             calendar_id = settings.default_calendar_id or request.calendar_id
             
             # Prepare attendees list with proper notification settings
             attendees = []
             
-            # Handle different attendee input formats
+            # Handle attendee input format
             if request.all_attendees:
                 # Use structured attendee list if provided
                 for attendee in request.all_attendees:
@@ -89,19 +60,12 @@ class GoogleCalendarBookingService:
                         'responseStatus': 'needsAction'
                     })
             else:
-                # Use traditional format (primary + additional)
+                # If no attendees provided, use organizer as attendee
                 attendees.append({
-                    'email': request.attendee_email, 
-                    'displayName': request.attendee_name,
+                    'email': organizer_email,
+                    'displayName': organizer_name,
                     'responseStatus': 'needsAction'
                 })
-                
-                if request.additional_attendees:
-                    for email in request.additional_attendees:
-                        attendees.append({
-                            'email': email,
-                            'responseStatus': 'needsAction'
-                        })
             
             # Prepare event body
             event_body = {
