@@ -30,8 +30,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(router, prefix="/api/v1", tags=["appointments-transcripts-extraction"])
 app.include_router(availability_router, tags=["google-calendar-avilability"])
 app.include_router(booking_router, tags=["google-calendar-booking"])
 
