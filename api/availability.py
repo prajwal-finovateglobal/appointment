@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict
-
+from datetime import datetime, timedelta
 from models import BatchAvailabilityRequest, AvailabilityResponse, DateRangeAvailabilityRequest, FreeSlotsResponse, EventListRequest, EventListResponse
 from services import AvailabilityService
 
@@ -90,6 +90,35 @@ def get_events_in_range(request: EventListRequest) -> EventListResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+
+@router.get("/availability_per_week")
+def get_availability_per_date() -> FreeSlotsResponse:
+    """Get availability for a specific date using Google Calendar"""
+    try:
+        availability_service = AvailabilityService()
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        end_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+        duration_minutes = 30  # Correct the type from str to int
+        availability = (9,15)
+        free_slots = availability_service.get_free_slots_for_date_range(
+            start_date=current_date,
+            end_date=end_date,
+            timezone="Asia/Kolkata",
+            duration_minutes=30,
+            working_hours=availability
+        )
+        
+        return FreeSlotsResponse(
+            timezone="Asia/Kolkata",
+            duration_minutes=30,
+            working_hours=availability,
+            free_slots=free_slots
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.get("/health")
 async def health_check():
